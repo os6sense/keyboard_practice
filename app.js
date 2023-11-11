@@ -109,7 +109,7 @@ function switchInputMode(mode) {
 }
 
 // Call this function to set up MIDI when you're ready to use MIDI input
-// setupMIDI();
+setupMIDI();
 
 // Initial note draw
 drawNote();
