@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIDI Diagnostic Tool</title>
+<script src="https://unpkg.com/webmidi"></script>
+</head>
+<body>
+<h1>MIDI Diagnostic Tool</h1>
+<div id="logs"></div>
+
+<script>
+  function logMessage(message) {
+    const logElement = document.getElementById('logs');
+    logElement.innerHTML += `<p>${message}</p>`;
+    console.log(message);
+  }
+
+  function setupMIDI() {
+    WebMidi.enable((err) => {
+      if (err) {
+        logMessage("WebMidi could not be enabled: " + err);
+        return;
+      }
+      
+      logMessage("WebMidi enabled. Available inputs:");
+      WebMidi.inputs.forEach((input, index) => {
+        logMessage(index + ": " + input.name);
+      });
+
+      // Attach listeners to all available inputs
+      WebMidi.inputs.forEach((input) => {
+        input.addListener('noteon', "all", (e) => {
+          logMessage(`Note on received from ${e.target.name}: ${e.note.name}${e.note.octave}`);
+        });
+
+        input.addListener('noteoff', "all", (e) => {
+          logMessage(`Note off received from ${e.target.name}: ${e.note.name}${e.note.octave}`);
+        });
+      });
+
+      if (WebMidi.inputs.length === 0) {
+        logMessage("No MIDI input devices detected.");
+      }
+    });
+  }
+
+  window.addEventListener('load', setupMIDI);
+</script>
+</body>
+</html>
+
