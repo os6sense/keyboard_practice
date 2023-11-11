@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Musical Note Game</title>
+<script src="https://unpkg.com/webmidi"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vexflow/3.0.9/vexflow-min.js"></script>
+<style>
+  body {
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+  }
+  .staff {
+    width: 500px;
+    height: 170px;
+    border: 1px solid black;
+  }
+  #noteName {
+    font-size: 48px;
+    margin-top: 20px;
+  }
+  #score {
+    margin-top: 20px;
+  }
+  .staff-container {
+    position: relative;
+  }
+</style>
+</head>
+<body>
+<div class="staff-container">
+  <div id="treble-staff" class="staff"></div>
+  <div id="bass-staff" class="staff"></div>
+</div>
+<div id="noteName"></div>
+<div>Score: <span id="score">0</span></div>
+<script src="app.js"></script>
+</body>
+</html>
+
