@@ -1,0 +1,63 @@
+#piano-container {
+  display: inline-block; /* Allows for horizontal scrolling if wider than screen */
+  position: relative; /* Context for absolutely positioned black keys */
+  white-space: nowrap; /* Prevents wrapping of inline elements */
+  /*overflow-x: auto; [> Enables horizontal scrolling <]*/
+  padding: 15px; /* Provides space around the piano */
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3); /* Shadow for visual depth */
+}
+
+.octave {
+  display: inline-flex; /* Inline-flex allows for horizontal layout without wrapping */
+  flex-wrap: nowrap; /* Ensures flex items do not wrap */
+  position: relative; /* Context for absolutely positioned black keys */
+}
+
+.key {
+  display: inline-block; /* Align keys in a row */
+  border: 1px solid #000;
+  border-right: none; /* Remove right border to make keys seamless */
+  vertical-align: bottom; /* Align keys to the bottom */
+}
+
+.key.white {
+  background-color: #fff;
+  width: 40px; /* Adjust as needed */
+  height: 100px; /* Adjust as needed */
+  z-index: 1;
+}
+
+.key.black {
+  background-color: #000;
+  width: 20px; /* Adjust as needed */
+  height: 60px; /* Adjust as needed */
+  position: absolute; /* Position over the white keys */
+  margin-left: 2px; /* Half the width of the black key */
+  z-index: 2;
+}
+
+/* Adjust these based on the width of your white keys */
+/*.key.black:nth-of-type(1) { left: 30px; }*/
+/*.key.black:nth-of-type(2) { left: 70px; }*/
+/*.key.black:nth-of-type(4) { left: 150px; }*/
+/*.key.black:nth-of-type(5) { left: 190px; }*/
+/*.key.black:nth-of-type(6) { left: 230px; }*/
+
+.key:active {
+  background-color: #ddd; /* Key press effect for white keys */
+}
+
+.key.black:active {
+  background-color: #444; /* Key press effect for black keys */
+}
+
+/* Adjustments to ensure that the last key's border is visible */
+.key.white:last-child {
+  border-right: 1px solid #000;
+}
+
+/* Adjustments for the last octave */
+.octave:last-child .key.black:last-child {
+  /*margin-right: -12px;*/
+}
+

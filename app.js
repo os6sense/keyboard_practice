@@ -1,8 +1,12 @@
+import './virtpiano/piano.css';
+import { VirtualPiano } from './virtpiano/keyboard';
+import { Vex, Stave, StaveNote, Formatter } from "vexflow";
+
+// Set up VexFlow for both treble and bass staves
+const VF = Vex.Flow;
+
 let score = 0;
 let inputMode = 'midi'; // 'keyboard' or 'midi'
-const trebleNotes = ['C/4', 'D/4', 'E/4', 'F/4', 'G/4', 'A/4', 'B/4', 'C/5', 'D/5', 'E/5', 'F/5', 'G/5', 'A/5', 'B/5', 'C/6'];
-const bassNotes = ['C/2', 'D/2', 'E/2', 'F/2', 'G/2', 'A/2', 'B/2', 'C/3', 'D/3', 'E/3', 'F/3', 'G/3', 'A/3', 'B/3', 'C/4'];
-let currentNote, currentClef;
 
 // Function to update the score
 function updateScore(value) {
@@ -10,51 +14,91 @@ function updateScore(value) {
   document.getElementById('score').textContent = score;
 }
 
-// Set up VexFlow for both treble and bass staves
-const VF = Vex.Flow;
-const trebleDiv = document.getElementById("treble-staff");
-const bassDiv = document.getElementById("bass-staff");
-const trebleRenderer = new VF.Renderer(trebleDiv, VF.Renderer.Backends.SVG);
-const bassRenderer = new VF.Renderer(bassDiv, VF.Renderer.Backends.SVG);
-trebleRenderer.resize(500, 150);
-bassRenderer.resize(500, 150);
-const trebleContext = trebleRenderer.getContext();
-const bassContext = bassRenderer.getContext();
-const trebleStave = new VF.Stave(10, 40, 450).addClef("treble").setContext(trebleContext).draw();
-const bassStave = new VF.Stave(10, 40, 450).addClef("bass").setContext(bassContext).draw();
 
-// Draw a random note on the appropriate stave and display its name
-function drawNote() {
-  // Clear previous notes
-  trebleContext.clear();
-  bassContext.clear();
-  trebleStave.setContext(trebleContext).draw();
-  bassStave.setContext(bassContext).draw();
+// Represent which clefs we want displayed
+class Mode {
+  static TREBLE_CLEF_ONLY = 'treble_clef_only'
+  static BASS_CLEF_ONLY = 'bass_clef_only'
+  static BASS_AND_TREBLE_CLEF = 'bass_and_treble_clef'
+};
 
-  // Determine clef and generate a random note
-  currentClef = Math.random() < 0.5 ? "treble" : "bass";
-  const noteArray = currentClef === "treble" ? trebleNotes : bassNotes;
-  const randomIndex = Math.floor(Math.random() * noteArray.length);
-  currentNote = noteArray[randomIndex];
+// Represent which clefs we want displayed
+class StaveTypes {
+  static TREBLE_CLEF = 'treble'
+  static BASS_CLEF = 'bass'
+};
 
-  // Display the note name
-  document.getElementById('noteName').textContent = currentNote;
-
-  // Create a stave note for the appropriate clef
-  const staveNote = new VF.StaveNote({
-    clef: currentClef,
-    keys: [currentNote],
-    duration: "q"
-  });
-
-  // Create a voice in 4/4 and add the note
-  const voice = new VF.Voice({ num_beats: 1, beat_value: 4 });
-  voice.addTickables([staveNote]);
-
-  // Format and draw the note
-  const formatter = new VF.Formatter().joinVoices([voice]).format([voice], 400);
-  voice.draw(currentClef === "treble" ? trebleContext : bassContext, currentClef === "treble" ? trebleStave : bassStave);
+class Options {
+  constructor(mode, octaves, darkMode ) {
+    this.mode = mode || Mode.TREBLE_CLEF_ONLY
+    this.octaves = octaves || 2
+    this.enableDarkMode = darkMode || false
+  }
 }
+
+class MyNote {
+  constructor(type, octaves) {
+    this.type = type;
+    this.octaves = octaves;
+    this.baseNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+  }
+
+  getNote() {
+    const min = this.type === "treble" ? 4 : 4 - this.octaves;
+    const max = this.type === "treble" ? 3 + this.octaves : 3;
+
+    let octave = Math.floor(Math.random() * (max - min + 1)) + min;
+
+    const randomIndex = Math.floor(Math.random() * this.baseNotes.length);
+    let currentNote = this.baseNotes[randomIndex];
+    return `${currentNote}/${octave}`
+  }
+}
+
+class MyStave {
+  constructor(type) {
+    this.type = type || "treble"
+    this.div = document.getElementById(this.type + "-staff");
+    this.renderer = new VF.Renderer(this.div, VF.Renderer.Backends.SVG);
+    this.renderer.resize(500, 190)
+    this.context = this.renderer.getContext();
+    this.stave = new VF.Stave(10, 40, 450).addClef(this.type).setContext(this.context).draw();
+  }
+
+  drawNote(options) {
+    let myNote = new MyNote(this.type, options.octaves)
+
+    this.context.clear();
+    this.stave.setContext(this.context).draw();
+
+    this.currentNote = myNote.getNote()
+
+    // Display the note name
+    document.getElementById(`${this.type}-note`).textContent = this.currentNote;
+
+    // Create a stave note for the appropriate clef
+    const staveNote = new VF.StaveNote({
+      clef: this.type,
+      keys: [this.currentNote],
+      duration: "q"
+    });
+
+    // Create a voice in 4/4 and add the note
+    const voice = new VF.Voice({ num_beats: 1, beat_value: 4 });
+    voice.addTickables([staveNote]);
+
+    // Format and draw the note
+    const formatter = new VF.Formatter().joinVoices([voice]).format([voice], 400);
+    voice.draw(this.context, this.stave);
+  }
+}
+
+const BassStave = new MyStave("bass")
+const TrebleStave = new MyStave("treble")
+const options = new Options(Mode.TREBLE_CLEF_ONLY, 1)
+
+TrebleStave.drawNote(options)
+BassStave.drawNote(options)
 
 // MIDI Setup
 function setupMIDI() {
@@ -79,52 +123,79 @@ function setupMIDI() {
 
 // Check note input against the current note
 function checkNoteInput(inputNote) {
+  let octave = parseInt(inputNote[inputNote.length - 1])
+  let stave = TrebleStave
+
+  if (octave < 4) {
+    stave = BassStave
+  }
+
+  let currentNote = stave.currentNote
   console.log(`Note input: ${inputNote}`);
   if (inputNote === currentNote) {
     updateScore(1);
   } else {
     updateScore(-1);
   }
-  drawNote(); // Draw a new note
-}
-
-
-
-// React to keyboard input
-document.addEventListener('keydown', (event) => {
-  if (inputMode === 'keyboard') {
-    const keyName = event.key.toUpperCase();
-    // Map QWERTY keys to notes if needed
-    const inputNote = mapKeyToNote(keyName); // Implement this function based on your key-to-note mapping
-    if (inputNote) {
-      checkNoteInput(inputNote);
-    }
-  }
-});
-
-// Function to switch between input modes
-function switchInputMode(mode) {
-  inputMode = mode; // 'keyboard' or 'midi'
-  console.log(`Switched to ${mode} input mode.`);
+  stave.drawNote(options); // Draw a new note
 }
 
 // Call this function to set up MIDI when you're ready to use MIDI input
-setupMIDI();
+//setupMIDI();
 
-// Initial note draw
-drawNote();
+const piano = new VirtualPiano('piano-container', 2, 4); 
 
-// Utility function for mapping QWERTY keys to musical notes
-function mapKeyToNote(key) {
-  // This is a simple mapping, you may want to expand it based on your needs
-  const keyToNoteMap = {
-    'A': 'C/4', 'W': 'C#/4', 'S': 'D/4', // ... and so on for each key you want to map
-  };
-  return keyToNoteMap[key];
+// Listen for the custom 'notePlayed' event
+document.addEventListener('notePlayed', (event) => {
+  console.log('Note played:', event.detail.note);
+  checkNoteInput(event.detail.note);
+});
+
+document.getElementById('octaveSpinner').addEventListener('change', function(event) {
+  const newOctaveCount = parseInt(event.target.value, 10);
+  // Update the number of octaves in your application logic
+  // This might involve re-generating the piano keys, updating the note range, etc.
+  updateOctaves(newOctaveCount);
+});
+
+function updateOctaves(octaves) {
+  // Validate the octaves value
+  if (octaves >= 1 && octaves <= 4) {
+    // Update the model and potentially the view to reflect the new number of octaves
+    console.log(`Updating to ${octaves} octaves...`);
+    options.octaves = octaves
+    // Your logic to handle the update goes here
+  }
 }
 
 
+document.querySelectorAll('input[name="radio-option"]').forEach((radio) => {
+  radio.addEventListener('change', onStaveOptionChange);
+});
 
-
-
-
+function onStaveOptionChange(event) {
+  const value = event.target.value;
+  switch (value) {
+    case 'treble_clef_only':
+      // Code to display only the treble clef
+      document.getElementById('treble-staff').style.display = 'block';
+      document.getElementById('bass-staff').style.display = 'none';
+      document.getElementById('bass-note').style.display = 'none';
+      document.getElementById('treble-note').style.display = 'block';
+      break;
+    case 'bass_clef_only':
+      // Code to display only the bass clef
+      document.getElementById('treble-staff').style.display = 'none';
+      document.getElementById('treble-note').style.display = 'none';
+      document.getElementById('bass-staff').style.display = 'block';
+      document.getElementById('bass-note').style.display = 'block';
+      break;
+    case 'bass_and_treble_clef':
+      // Code to display both the treble and bass clefs
+      document.getElementById('treble-staff').style.display = 'block';
+      document.getElementById('bass-staff').style.display = 'block';
+      document.getElementById('treble-note').style.display = 'block';
+      document.getElementById('bass-note').style.display = 'block';
+      break;
+  }
+}
