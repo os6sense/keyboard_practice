@@ -1,4 +1,6 @@
 import './virtpiano/piano.css';
+import { MidiStatusIndicator } from './midi.js';
+
 import { VirtualPiano } from './virtpiano/keyboard';
 import { Vex, Stave, StaveNote, Formatter } from "vexflow";
 
@@ -13,7 +15,6 @@ function updateScore(value) {
   score += value;
   document.getElementById('score').textContent = score;
 }
-
 
 // Represent which clefs we want displayed
 class Mode {
@@ -141,33 +142,19 @@ function checkNoteInput(inputNote) {
 }
 
 // Call this function to set up MIDI when you're ready to use MIDI input
+//
+const midiStatus = new MidiStatusIndicator('midi-status-container');
+midiStatus.setupMIDI(checkNoteInput);
 //setupMIDI();
 
-const piano = new VirtualPiano('piano-container', 2, 4); 
+// note we need an update method
+let piano = new VirtualPiano('piano-container', 4, 1); 
 
 // Listen for the custom 'notePlayed' event
 document.addEventListener('notePlayed', (event) => {
   console.log('Note played:', event.detail.note);
   checkNoteInput(event.detail.note);
 });
-
-document.getElementById('octaveSpinner').addEventListener('change', function(event) {
-  const newOctaveCount = parseInt(event.target.value, 10);
-  // Update the number of octaves in your application logic
-  // This might involve re-generating the piano keys, updating the note range, etc.
-  updateOctaves(newOctaveCount);
-});
-
-function updateOctaves(octaves) {
-  // Validate the octaves value
-  if (octaves >= 1 && octaves <= 4) {
-    // Update the model and potentially the view to reflect the new number of octaves
-    console.log(`Updating to ${octaves} octaves...`);
-    options.octaves = octaves
-    // Your logic to handle the update goes here
-  }
-}
-
 
 document.querySelectorAll('input[name="radio-option"]').forEach((radio) => {
   radio.addEventListener('change', onStaveOptionChange);
@@ -182,6 +169,7 @@ function onStaveOptionChange(event) {
       document.getElementById('bass-staff').style.display = 'none';
       document.getElementById('bass-note').style.display = 'none';
       document.getElementById('treble-note').style.display = 'block';
+      piano.reset(4,1)
       break;
     case 'bass_clef_only':
       // Code to display only the bass clef
@@ -189,6 +177,7 @@ function onStaveOptionChange(event) {
       document.getElementById('treble-note').style.display = 'none';
       document.getElementById('bass-staff').style.display = 'block';
       document.getElementById('bass-note').style.display = 'block';
+      piano.reset(3,1)
       break;
     case 'bass_and_treble_clef':
       // Code to display both the treble and bass clefs
@@ -196,6 +185,7 @@ function onStaveOptionChange(event) {
       document.getElementById('bass-staff').style.display = 'block';
       document.getElementById('treble-note').style.display = 'block';
       document.getElementById('bass-note').style.display = 'block';
+      piano.reset(3,2)
       break;
   }
 }
