@@ -102,25 +102,25 @@ TrebleStave.drawNote(options)
 BassStave.drawNote(options)
 
 // MIDI Setup
-function setupMIDI() {
-  WebMidi.enable((err) => {
-    if (err) {
-      console.log("WebMidi could not be enabled.", err);
-      return;
-    }
-    console.log("WebMidi enabled!");
+//function setupMIDI() {
+  //WebMidi.enable((err) => {
+    //if (err) {
+      //console.log("WebMidi could not be enabled.", err);
+      //return;
+    //}
+    //console.log("WebMidi enabled!");
 
-    if (WebMidi.inputs.length > 0) {
-      const input = WebMidi.inputs[0];
-      input.addListener('noteon', "all", (e) => {
-        if (inputMode === 'midi') {
-          const midiNote = e.note.name + '/' + e.note.octave;
-          checkNoteInput(midiNote);
-        }
-      });
-    }
-  });
-}
+    //if (WebMidi.inputs.length > 0) {
+      //const input = WebMidi.inputs[0];
+      //input.addListener('noteon', "all", (e) => {
+        //if (inputMode === 'midi') {
+          //const midiNote = e.note.name + '/' + e.note.octave;
+          //checkNoteInput(midiNote);
+        //}
+      //});
+    //}
+  //});
+//}
 
 // Check note input against the current note
 function checkNoteInput(inputNote) {
