@@ -62,10 +62,8 @@ export class MidiStatusIndicator {
         if (WebMidi.inputs.length > 0) {
           const input = WebMidi.inputs[0];
           input.addListener('noteon', "all", (e) => {
-            if (inputMode === 'midi') {
-              const midiNote = e.note.name + '/' + e.note.octave;
-                checkNoteInputCallback(midiNote);
-            }
+            const midiNote = e.note.name + '/' + e.note.octave;
+            checkNoteInputCallback(midiNote);
           });
         }
         // Handle MIDI inputs if available
