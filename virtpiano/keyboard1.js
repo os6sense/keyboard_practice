@@ -1,29 +1,31 @@
 export class VirtualPiano {
   constructor(containerId, startOctave = 4, octaves = 1) {
-    this.containerId = containerId;
     this.startOctave = startOctave;
+    this.containerId = containerId;
     this.octaves = octaves;
-    this.mouseDownListener = (event) => this.onMouseDown(event);
+    this.keys = [];
     this.createKeyboard();
     this.attachEventListeners();
   }
 
   reset(startOctave = 2, octaves = 4) {
-    this.startOctave = startOctave;
-    this.octaves = octaves;
-    this.removeEventListeners();
-    this.createKeyboard();
-    this.attachEventListeners();
+
   }
 
   createKeyboard() {
     const container = document.getElementById(this.containerId);
     container.innerHTML = ''; // Clear existing content
+    container.classList.add('piano'); // Ensure the container has the flexbox class
 
-    // Create keys for the specified number of octaves
-    for (let o = this.startOctave; o < this.startOctave + this.octaves; o++) {
-      this.createOctave(container, o);
+    // Create a flex container for all octaves
+    const allOctavesContainer = document.createElement('div');
+    allOctavesContainer.classList.add('all-octaves');
+    
+    for (let o = 0; o < this.octaves; o++) {
+      this.createOctave(allOctavesContainer, o);
     }
+
+    container.appendChild(allOctavesContainer); // Add all octaves to the main container
   }
 
   createOctave(container, octave) {
@@ -35,16 +37,14 @@ export class VirtualPiano {
     whiteKeys.forEach((key, index) => {
       const whiteKeyElem = document.createElement('div');
       whiteKeyElem.className = 'key white';
-      whiteKeyElem.dataset.note = `${key}/${octave}`;
-      whiteKeyElem.style.width = `26px`; 
+      whiteKeyElem.dataset.note = `${key}/${this.startOctave + octave}`;
       octaveElem.appendChild(whiteKeyElem);
 
       if (index < whiteKeys.length - 1 && !['E', 'B'].includes(key)) {
         const blackKeyElem = document.createElement('div');
         blackKeyElem.className = 'key black';
-        blackKeyElem.dataset.note = `${blackKeys[index]}/${octave}`;
-        blackKeyElem.style.left = `${(index + 1) * 26 - 6}px`; // Position black keys
-        blackKeyElem.style.width = `14px`; 
+        blackKeyElem.dataset.note = `${blackKeys[index]}/${this.startOctave + octave}`;
+        blackKeyElem.style.left = `${(index + 1) * 40 - 10}px`; // Position black keys
         octaveElem.appendChild(blackKeyElem);
       }
     });
@@ -54,18 +54,24 @@ export class VirtualPiano {
 
   attachEventListeners() {
     const container = document.getElementById(this.containerId);
-    container.addEventListener('mousedown', this.mouseDownListener);
-  }
+    container.addEventListener('mousedown', (event) => {
+      if (event.target.classList.contains('key')) {
+        this.emitNoteEvent(event.target.dataset.note);
+      }
+    });
 
-  removeEventListeners() {
-    const container = document.getElementById(this.containerId);
-    container.removeEventListener('mousedown', this.mouseDownListener);
-  }
+    // Map keyboard to piano keys
+    const keyMap = {
+      'KeyA': 'C', 'KeyW': 'C#', 'KeyS': 'D', 'KeyE': 'D#',
+      'KeyD': 'E', 'KeyF': 'F', 'KeyT': 'F#', 'KeyG': 'G',
+      'KeyY': 'G#', 'KeyH': 'A', 'KeyU': 'A#', 'KeyJ': 'B'
+    };
 
-  onMouseDown(event) {
-    if (event.target.classList.contains('key')) {
-      this.emitNoteEvent(event.target.dataset.note);
-    }
+    document.addEventListener('keydown', (event) => {
+      if (keyMap[event.code]) {
+        this.emitNoteEvent(keyMap[event.code]);
+      }
+    });
   }
 
   emitNoteEvent(note) {
